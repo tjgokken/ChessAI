@@ -64,7 +64,7 @@
 
 @code {
     private ChessBoard Board { get; set; } = new();
-    private GameState State { get; set; }
+    private GameState State { get; set; } = new();
     private (int Row, int Col)? DraggedPiecePosition { get; set; }
     private bool IsGameOver { get; set; }
     private string GameOverMessage { get; set; } = "";
@@ -107,10 +107,11 @@
 
    private string GetSquareColorClass(SquareColor color) => color == SquareColor.Light ? "light" : "dark";
 
-   private string GetPieceColor(ChessPiece piece) => piece.Color == ChessPiece.PieceColor.White ? "white-piece" : "black-piece";
+   private string GetPieceColor(ChessPiece? piece) => piece != null && piece.Color == ChessPiece.PieceColor.White ? "white-piece" : "black-piece";
 
-   private string GetPieceImagePath(ChessPiece piece)
+   private string GetPieceImagePath(ChessPiece? piece)
    {
+       if (piece == null) return string.Empty;
        var color = piece.Color == ChessPiece.PieceColor.White ? "w" : "b";
        var pieceType = piece.Type switch
        {
@@ -125,7 +126,7 @@
        return $"/images/chess-pieces/{color}{pieceType}.svg";
    }
 
-   private bool IsValidDrag(ChessPiece piece)
+   private bool IsValidDrag(ChessPiece? piece)
    {
        return piece != null && piece.Color == State.ActiveColor;
    }
@@ -201,6 +202,7 @@
            // TO-DO: display a "Check!" message here
        }
 
+       await Task.CompletedTask; // This is a placeholder to keep the method properly asynchronous without having to await on a non-existent async operation.
        StateHasChanged();
    }
 

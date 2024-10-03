@@ -21,7 +21,7 @@ namespace ChessAI.Game
                 : ChessPiece.PieceColor.White;
         }
 
-        public void UpdateHalfmoveClock(ChessPiece piece, ChessMove move, ChessPiece[,] pieces)
+        public void UpdateHalfmoveClock(ChessPiece piece, ChessMove move, ChessPiece?[,] pieces)
         {
             // Check if a pawn moved or a capture occurred at the destination square
             if (piece.Type == ChessPiece.PieceType.Pawn || pieces[move.ToRow, move.ToCol] != null)
