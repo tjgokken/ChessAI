@@ -1,0 +1,228 @@
+﻿@page "/"
+@using ChessAI.Models
+@using ChessAI.Services
+@using ChessAI.Game
+@inject StockfishService StockfishService
+
+<div class="header">
+    <h1>Chess AI</h1>
+    <button @onclick="ResetBoard" class="new-game-button">New Game</button>
+</div>
+
+<!-- Spinner overlay, positioned absolutely so it doesn't push the board down -->
+@if (isThinking)
+{
+    <div class="spinner-overlay">
+        <div class="spinner-border" role="status">
+        </div>
+    </div>
+}
+
+<div class="chess-board-container">
+    <table class="chess-board">
+        <!-- Column letters (A-H) at the top and bottom -->
+        @RenderColumnLabels()
+
+        <!-- Chessboard with row numbers on the sides -->
+        @for (var row = 7; row >= 0; row--)
+        {
+            <tr>
+                <td class="row-label">@GetRowLabel(row)</td> <!-- Row number on the left side -->
+                @for (var col = 0; col < 8; col++)
+                {
+                    var currentRow = row;
+                    var currentCol = col;
+                    <td class="square @GetSquareColorClass(GetSquareColor(currentRow, currentCol))"
+                        ondragover="event.preventDefault();"
+                        @ondrop="@(() => DropPiece(currentRow, currentCol))"
+                        @ondragover:preventDefault>
+                        @if (Board.Pieces[currentRow, currentCol] != null)
+                        {
+                            <div class="piece @GetPieceColor(Board.Pieces[currentRow, currentCol])"
+                                 draggable="true"
+                                 @ondragstart="@(() => DragPiece(currentRow, currentCol))"
+                                 @ondragend="@DragEnd">
+                                <img src="@GetPieceImagePath(Board.Pieces[currentRow, currentCol])" class="chess-piece-img" />
+                            </div>
+                        }
+                    </td>
+                }
+                <td class="row-label">@GetRowLabel(row)</td> <!-- Row number on the right side -->
+            </tr>
+        }
+
+        @RenderColumnLabels()
+    </table>
+</div>
+
+@if (IsGameOver)
+{
+    <div class="game-over-message">
+        @GameOverMessage
+    </div>
+}
+
+@code {
+    private ChessBoard Board { get; set; } = new();
+    private GameState State { get; set; }
+    private (int Row, int Col)? DraggedPiecePosition { get; set; }
+    private bool IsGameOver { get; set; }
+    private string GameOverMessage { get; set; } = "";
+    private bool isThinking;
+
+    private static readonly string[] ColumnLabels = { "A", "B", "C", "D", "E", "F", "G", "H" };
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        ResetBoard();
+        await StockfishService.InitializeEngine();
+    }
+
+    private void ResetBoard()
+    {
+        Board = new ChessBoard();
+        State = new GameState();
+        Board.InitializeBoard();
+        State.ResetGame();
+        IsGameOver = false;
+        GameOverMessage = "";
+        StateHasChanged();
+    }
+
+    private RenderFragment RenderColumnLabels() =>@<tr>
+            <td></td>
+            @foreach (var col in ColumnLabels)
+            {
+                <td class="column-label">@col</td>
+            }
+            <td></td>
+        </tr>;
+
+   private string GetRowLabel(int rowIndex) => (8 - rowIndex).ToString();
+
+   private enum SquareColor { Light, Dark }
+
+   private SquareColor GetSquareColor(int row, int col) => (row + col) % 2 == 0 ? SquareColor.Light : SquareColor.Dark;
+
+   private string GetSquareColorClass(SquareColor color) => color == SquareColor.Light ? "light" : "dark";
+
+   private string GetPieceColor(ChessPiece piece) => piece.Color == ChessPiece.PieceColor.White ? "white-piece" : "black-piece";
+
+   private string GetPieceImagePath(ChessPiece piece)
+   {
+       var color = piece.Color == ChessPiece.PieceColor.White ? "w" : "b";
+       var pieceType = piece.Type switch
+       {
+           ChessPiece.PieceType.Pawn => "p",
+           ChessPiece.PieceType.Rook => "r",
+           ChessPiece.PieceType.Knight => "n",
+           ChessPiece.PieceType.Bishop => "b",
+           ChessPiece.PieceType.Queen => "q",
+           ChessPiece.PieceType.King => "k",
+           _ => throw new ArgumentException("Invalid piece type")
+       };
+       return $"/images/chess-pieces/{color}{pieceType}.svg";
+   }
+
+   private bool IsValidDrag(ChessPiece piece)
+   {
+       return piece != null && piece.Color == State.ActiveColor;
+   }
+
+   private void DragPiece(int row, int col)
+   {
+       var piece = Board.Pieces[row, col];
+       if (IsValidDrag(piece))
+       {
+           DraggedPiecePosition = (row, col);
+       }
+   }
+
+   private void DragEnd()
+   {
+       DraggedPiecePosition = null;
+   }
+
+   private bool IsValidMove(ChessMove move)
+   {
+       var piece = Board.Pieces[move.FromRow, move.FromCol];
+       if (!IsValidDrag(piece)) return false;
+
+       var validMoves = Board.GetValidMoves(piece);
+       return validMoves.Contains((move.ToRow, move.ToCol));
+   }
+
+   private async Task DropPiece(int row, int col)
+   {
+       if (DraggedPiecePosition.HasValue && !IsGameOver)
+       {
+           var (fromRow, fromCol) = DraggedPiecePosition.Value;
+           var piece = Board.Pieces[fromRow, fromCol];
+
+           if (IsValidDrag(piece))
+           {
+               var move = new ChessMove(fromRow, fromCol, row, col);
+
+               if (IsValidMove(move))
+               {
+                   Board.ApplyMove(move);
+                   await CheckGameState();
+                   if (!IsGameOver)
+                   {
+                       await MakeAIMove();
+                       await CheckGameState();
+                   }
+               }
+           }
+
+           DraggedPiecePosition = null;
+           StateHasChanged();
+       }
+   }
+
+   private async Task CheckGameState()
+   {
+       var currentColor = State.ActiveColor;
+       var previousColor = currentColor == ChessPiece.PieceColor.White ? ChessPiece.PieceColor.Black : ChessPiece.PieceColor.White;
+
+       if (Board.IsCheckmate(previousColor))
+       {
+           IsGameOver = true;
+           GameOverMessage = $"Checkmate! {currentColor} wins!";
+       }
+       else if (Board.IsCheckmate(currentColor))
+       {
+           IsGameOver = true;
+           GameOverMessage = $"Checkmate! {previousColor} wins!";
+       }
+       else if (Board.IsInCheck(currentColor))
+       {
+           // TO-DO: display a "Check!" message here
+       }
+
+       StateHasChanged();
+   }
+
+   private async Task MakeAIMove()
+   {
+       if (!IsGameOver)
+       {
+           isThinking = true;
+           StateHasChanged();
+
+           var fen = Board.GetFEN();
+           var bestMove = await StockfishService.GetBestMove(fen);
+
+           await Task.Delay(1000);
+
+           isThinking = false;
+           StateHasChanged();
+
+           var move = ChessMove.FromUci(bestMove);
+           Board.ApplyMove(move);
+
+           StateHasChanged();
+       }
+   }
+}

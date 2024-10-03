@@ -1,0 +1,142 @@
+.chess-board-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    margin: 20px 0;
+    position: relative; /* Necessary for spinner overlay positioning */
+}
+
+/* Chessboard styling */
+.chess-board {
+    border-collapse: collapse;
+}
+
+/* Chessboard squares */
+.square {
+    width: 60px;
+    height: 60px;
+    text-align: center;
+    vertical-align: middle;
+    font-size: 40px;
+    padding: 0;
+    border: 1px solid #333; /* Border between chess squares */
+}
+
+.light {
+    background-color: #f0d9b5;
+}
+
+.dark {
+    background-color: #b58863;
+}
+
+/* Chess pieces */
+.piece {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: grab;
+    user-select: none;
+}
+
+    .piece:active {
+        cursor: grabbing;
+    }
+
+/* Piece colors */
+.white-piece {
+    color: #FFFFFF;
+    text-shadow: -1px -1px 0 #000, 1px -1px 0 #000, -1px 1px 0 #000, 1px 1px 0 #000, 0 0 5px rgba(0, 0, 0, 0.5);
+}
+
+.black-piece {
+    color: #000000;
+    text-shadow: -1px -1px 0 #FFF, 1px -1px 0 #FFF, -1px 1px 0 #FFF, 1px 1px 0 #FFF, 0 0 5px rgba(255, 255, 255, 0.5);
+}
+
+/* Column labels (A-H) and row labels (1-8) */
+.column-label, .row-label {
+    width: 60px; /* Match the size of chess squares */
+    height: 60px;
+    text-align: center;
+    vertical-align: middle;
+    font-weight: bold;
+    font-size: 20px;
+    color: #333;
+    display: table-cell; /* Ensures the labels appear in rows, not columns */
+    justify-content: center;
+    align-items: center;
+    border: none; /* Remove border around the letters and numbers */
+}
+
+.column-label {
+    background-color: #e0e0e0;
+}
+
+.row-label {
+    background-color: #e0e0e0;
+}
+
+/* Ensures table layout behaves as expected */
+table {
+    width: auto;
+    margin: 0;
+}
+
+/* Header layout for Chess AI and New Game button */
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.new-game-button {
+    padding: 10px 20px;
+    font-size: 1em;
+    cursor: pointer;
+}
+
+.spinner-overlay {
+    position: absolute;
+    top: 50%; /* Positioning in the middle vertically */
+    left: 50%; /* Positioning in the middle horizontally */
+    transform: translate(-50%, -50%); /* Adjust to perfectly center the spinner */
+    z-index: 1000;
+    background: rgba(255, 255, 255, 0.5); /* Semi-transparent background */
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    width: 100px; /* Set a specific width for the spinner area */
+    height: 100px; /* Set a specific height for the spinner area */
+}
+
+/* Spinner appearance */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+.status-message {
+    font-size: 18px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.game-over-message {
+    font-size: 20px;
+    font-weight: bold;
+    color: red;
+    margin-top: 20px;
+}
+
+.new-game-button {
+    margin-left: 10px;
+    padding: 10px 20px;
+    background-color: #007bff;
+    color: white;
+    border: none;
+    cursor: pointer;
+}
