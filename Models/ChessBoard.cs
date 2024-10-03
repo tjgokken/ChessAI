@@ -16,14 +16,7 @@ public class ChessBoard
 
     // Tracks en passant information
     public EnPassant EnPassantTarget { get; } = new();
-
-
-    // 
-    //public ChessPiece[,] Pieces { get; } = new ChessPiece[8, 8];
-
-    // Tracks which color's turn it currently is (either White or Black).
-    //public ChessPiece.PieceColor ActiveColor { get; set; } = ChessPiece.PieceColor.White;
-
+    
     // Indicates whether White can still castle kingside (with the h1 rook).
     public bool WhiteKingsideCastle { get; } = true;
 
@@ -35,29 +28,6 @@ public class ChessBoard
 
     // Indicates whether Black can still castle queenside (with the a8 rook).
     public bool BlackQueensideCastle { get; } = true;
-
-    //// Tracks whether White's king has moved (if true, White can't castle anymore).
-    //public bool WhiteKingMoved { get; private set; }
-
-    //// Tracks whether Black's king has moved (if true, Black can't castle anymore).
-    //public bool BlackKingMoved { get; private set; }
-
-    //// Tracks whether White's kingside rook (h1) has moved (if true, White can't castle kingside).
-    //public bool WhiteKingsideRookMoved { get; private set; }
-
-    //// Tracks whether White's queenside rook (a1) has moved (if true, White can't castle queenside).
-    //public bool WhiteQueensideRookMoved { get; private set; }
-
-    //// Tracks whether Black's kingside rook (h8) has moved (if true, Black can't castle kingside).
-    //public bool BlackKingsideRookMoved { get; private set; }
-
-    //// Tracks whether Black's queenside rook (a8) has moved (if true, Black can't castle queenside).
-    //public bool BlackQueensideRookMoved { get; private set; }
-
-    // Stores the square where en passant capture is possible, or "-" if no en passant is available.
-    //public string EnPassantTarget { get; private set; } = "-";
-
-    // Tracks the number of halfmoves since the last capture or pawn move (used for the fifty-move rule).
     public int HalfmoveClock { get; }
 
     // Tracks the total number of full moves in the game (incremented after Black’s move).
@@ -104,70 +74,7 @@ public class ChessBoard
     }
 
     #endregion
-
-    #region Castling
-
-    ///// <summary>
-    /////     Checks whether castling is allowed for the given color and direction (kingside or queenside).
-    ///// </summary>
-    //public bool CanCastle(ChessPiece.PieceColor color, bool kingside)
-    //{
-    //    var row = color == ChessPiece.PieceColor.White ? 0 : 7;
-
-    //    // Check if the king or rook has moved
-    //    if (color == ChessPiece.PieceColor.White)
-    //    {
-    //        if (WhiteKingMoved || (kingside && WhiteKingsideRookMoved) || (!kingside && WhiteQueensideRookMoved))
-    //            return false;
-    //    }
-    //    else
-    //    {
-    //        if (BlackKingMoved || (kingside && BlackKingsideRookMoved) || (!kingside && BlackQueensideRookMoved))
-    //            return false;
-    //    }
-
-    //    // Determine the start and end columns for the path check
-    //    var startCol = kingside ? 5 : 1;
-    //    var endCol = kingside ? 6 : 3;
-
-    //    // Check if the path is clear and not under attack
-    //    for (var col = startCol; col <= endCol; col++)
-    //        if (Pieces[row, col] != null || IsSquareUnderAttack(row, col, color))
-    //            return false;
-
-    //    return true;
-    //}
-
-    ///// <summary>
-    /////     Applies the castling move for the given color and direction.
-    ///// </summary>
-    //public void ApplyCastlingMove(ChessPiece.PieceColor color, bool kingside)
-    //{
-    //    var row = color == ChessPiece.PieceColor.White ? 0 : 7;
-    //    var kingStartCol = 4;
-    //    var rookStartCol = kingside ? 7 : 0;
-    //    var kingEndCol = kingside ? 6 : 2;
-    //    var rookEndCol = kingside ? 5 : 3;
-
-    //    MovePiece(Pieces[row, kingStartCol], row, kingEndCol);
-    //    MovePiece(Pieces[row, rookStartCol], row, rookEndCol);
-
-    //    if (color == ChessPiece.PieceColor.White)
-    //    {
-    //        WhiteKingMoved = true;
-    //        if (kingside) WhiteKingsideRookMoved = true;
-    //        else WhiteQueensideRookMoved = true;
-    //    }
-    //    else
-    //    {
-    //        BlackKingMoved = true;
-    //        if (kingside) BlackKingsideRookMoved = true;
-    //        else BlackQueensideRookMoved = true;
-    //    }
-    //}
-
-    #endregion
-
+    
     #region Piece Movement
 
     /// <summary>
@@ -241,73 +148,7 @@ public class ChessBoard
 
         // Update fullmove number
         State.UpdateFullmoveNumber();
-
-        //// Update castling rights if a rook or king moves
-        //Castling.UpdateCastlingRights(piece, move);
-
-        //// Update en passant target
-        //EnPassantTarget.UpdateTarget(piece, move);
-
-        //// Update halfmove clock
-        //if (piece.Type == ChessPiece.PieceType.Pawn || Pieces[move.ToRow, move.ToCol] != null)
-        //    HalfmoveClock = 0;
-        //else
-        //    HalfmoveClock++;
-
-        //// Update fullmove number
-        //if (ActiveColor == ChessPiece.PieceColor.White)
-        //    FullmoveNumber++;
     }
-
-    ///// <summary>
-    /////     Updates castling rights when a rook or king moves.
-    ///// </summary>
-    //private void UpdateCastlingRights(ChessPiece piece, ChessMove move)
-    //{
-    //    if (piece.Type == ChessPiece.PieceType.King)
-    //    {
-    //        if (piece.Color == ChessPiece.PieceColor.White)
-    //        {
-    //            WhiteKingsideCastle = false;
-    //            WhiteQueensideCastle = false;
-    //        }
-    //        else
-    //        {
-    //            BlackKingsideCastle = false;
-    //            BlackQueensideCastle = false;
-    //        }
-    //    }
-    //    else if (piece.Type == ChessPiece.PieceType.Rook)
-    //    {
-    //        if (piece.Color == ChessPiece.PieceColor.White)
-    //        {
-    //            if (move.FromCol == 0) WhiteQueensideCastle = false;
-    //            if (move.FromCol == 7) WhiteKingsideCastle = false;
-    //        }
-    //        else
-    //        {
-    //            if (move.FromCol == 0) BlackQueensideCastle = false;
-    //            if (move.FromCol == 7) BlackKingsideCastle = false;
-    //        }
-    //    }
-    //}
-
-    ///// <summary>
-    /////     Updates the en passant target when a pawn moves two squares forward.
-    ///// </summary>
-    //private void UpdateEnPassantTarget(ChessPiece piece, ChessMove move)
-    //{
-    //    if (piece.Type == ChessPiece.PieceType.Pawn && Math.Abs(move.ToRow - move.FromRow) == 2)
-    //    {
-    //        var enPassantRow = (move.FromRow + move.ToRow) / 2;
-    //        var enPassantCol = (char)('a' + move.FromCol);
-    //        EnPassantTarget = $"{enPassantCol}{enPassantRow + 1}";
-    //    }
-    //    else
-    //    {
-    //        EnPassantTarget = "-";
-    //    }
-    //}
 
     #endregion
 
